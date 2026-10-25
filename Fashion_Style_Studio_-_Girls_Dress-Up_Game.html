@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fashion Style Studio - Dress Up Game</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Poppins & Cairo for bilingual appeal -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- html2canvas for capturing snapshots -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            pink: '#FF69B4',
+                            hotpink: '#FF1493',
+                            purple: '#9370DB',
+                            lavender: '#E6E6FA',
+                            softbg: '#FFF0F5',
+                            gold: '#FFD700',
+                            cardBg: 'rgba(255, 255, 255, 0.85)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'Cairo', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'chic': '0 10px 25px -5px rgba(255, 105, 180, 0.3), 0 8px 10px -6px rgba(147, 112, 219, 0.2)',
+                        'glow': '0 0 15px rgba(255, 105, 180, 0.6)'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Poppins', 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #ffd1dc 0%, #e6e6fa 50%, #fff0f5 100%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 182, 193, 0.2);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 105, 180, 0.5);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 20, 147, 0.8);
+        }
+
+        .item-card {
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .item-card:hover {
+            transform: translateY(-4px) scale(1.03);
+        }
+        .item-card.active {
+            border-color: #FF1493;
+            background: linear-gradient(135deg, #fff0f5, #ffe4e1);
+            box-shadow: 0 0 12px rgba(255, 20, 147, 0.4);
+        }
+
+        /* Background Scenery Styles */
+        .bg-scene-runway {
+            background: linear-gradient(180deg, #1a0b2e 0%, #4c1d95 60%, #831843 100%);
+        }
+        .bg-scene-beach {
+            background: linear-gradient(180deg, #38bdf8 0%, #bae6fd 60%, #fde047 100%);
+        }
+        .bg-scene-park {
+            background: linear-gradient(180deg, #7dd3fc 0%, #a7f3d0 60%, #4ade80 100%);
+        }
+        .bg-scene-room {
+            background: linear-gradient(180deg, #fbcfe8 0%, #f472b6 50%, #db2777 100%);
+        }
+        .bg-scene-party {
+            background: linear-gradient(180deg, #312e81 0%, #581c87 60%, #be185d 100%);
+        }
+
+        .bounce-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Responsive height adjustments */
+        @media (max-width: 768px) {
+            .doll-container {
+                height: 480px;
+            }
+        }
+        @media (min-width: 769px) {
+            .doll-container {
+                height: 620px;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800 overflow-x-hidden">
+
+    <!-- Header / Navbar -->
+    <header class="w-full bg-white/80 backdrop-blur-md shadow-sm border-b border-pink-200 px-4 py-3 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            <!-- Brand Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-500 to-purple-500 flex items-center justify-center text-white text-xl shadow-md">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+                        Fashion Style Studio
+                    </h1>
+                    <p class="text-xs text-pink-500 font-semibold hidden sm:block">لعبة تلبيس البنات والأناقة العصرية</p>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Sound Toggle -->
+                <button id="soundToggleBtn" onclick="toggleSound()" class="bounce-btn px-3 py-2 rounded-xl bg-pink-100 text-pink-600 hover:bg-pink-200 font-medium text-xs sm:text-sm flex items-center gap-1.5 transition">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                    <span class="hidden sm:inline">الصوت</span>
+                </button>
+
+                <!-- Randomize Button -->
+                <button onclick="randomizeOutfit()" class="bounce-btn px-3 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-medium text-xs sm:text-sm shadow-md flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>عشوائي</span>
+                </button>
+
+                <!-- Reset Button -->
+                <button onclick="resetOutfit()" class="bounce-btn px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs sm:text-sm flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>إعادة ضبط</span>
+                </button>
+
+                <!-- Download / Save Snapshot Button -->
+                <button onclick="takeSnapshot()" class="bounce-btn px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold text-xs sm:text-sm shadow-md flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>حفظ الصورة</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        
+        <!-- LEFT/CENTER: Doll Display & Stage (5 cols on lg) -->
+        <section class="lg:col-span-5 flex flex-col items-center">
+            
+            <!-- Stage Frame -->
+            <div id="stageContainer" class="relative w-full rounded-3xl overflow-hidden shadow-chic border-4 border-white bg-scene-runway transition-all duration-500 doll-container flex justify-center items-center">
+                
+                <!-- Stage Background Overlay Elements -->
+                <div id="sceneryDecorations" class="absolute inset-0 pointer-events-none overflow-hidden">
+                    <!-- Runway Lights / Glitter effects -->
+                    <div id="runwayLights" class="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-yellow-200 via-transparent to-transparent"></div>
+                </div>
+
+                <!-- Scene Label -->
+                <div class="absolute top-3 left-3 bg-black/40 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full border border-white/20 flex items-center gap-1.5 z-20">
+                    <i class="fa-solid fa-location-dot text-pink-400"></i>
+                    <span id="sceneNameLabel">منصة العرض (Runway)</span>
+                </div>
+
+                <!-- MAIN CHARACTER DOLL CANVAS LAYER -->
+                <div id="dollStage" class="relative w-full h-full max-w-[340px] flex justify-center items-center">
+                    
+                    <!-- SVG LAYER STACK (Order matters for visual overlap!) -->
+                    <!-- 0. Background Aura/Shadow -->
+                    <div class="absolute bottom-6 w-48 h-6 bg-black/20 rounded-full blur-sm"></div>
+
+                    <!-- 1. Skin / Base Body Model -->
+                    <svg id="layer-skin" class="absolute inset-0 w-full h-full" viewBox="0 0 400 650" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+
+                    <!-- 2. Makeup & Face Features -->
+                    <svg id="layer-face" class="absolute inset-0 w-full h-full" viewBox="0 0 400 650" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+
+                    <!-- 3. Bottoms (Pants/Skirts) -->
+                    <svg id="layer-bottoms" class="absolute inset-0 w-full h-full" viewBox="0 0 400 650" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+
+                    <!-- 4. Tops (Shirts/Blouses) -->
+                    <svg id="layer-tops" class="absolute inset-0 w-full h-full" viewBox="0 0 400 650" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+
+                    <!-- 5. One-Piece Dresses (Replaces Tops+Bottoms if active) -->
+                    <svg id="layer-dresses" class="absolute inset-0 w-full h-full" viewBox="0 0 400 650" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+
+                    <!-- 6. Shoes -->
+                    <svg id="layer-shoes" class="absolute inset-0 w-full h-full" viewBox="0 0 400 650" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+
+                    <!-- 7. Hairstyle -->
+                    <svg id="layer-hair" class="absolute inset-0 w-full h-full" viewBox="0 0 400 650" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+
+                    <!-- 8. Accessories (Glasses, Bags, Jewelry, Hats) -->
+                    <svg id="layer-accessories" class="absolute inset-0 w-full h-full" viewBox="0 0 400 650" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+
+                </div>
+            </div>
+
+            <!-- Quick Stage Control Bar -->
+            <div class="w-full mt-3 flex justify-between items-center text-xs text-slate-500 font-medium px-2">
+                <span>✨ صممي مظهرك الخاص</span>
+                <span id="outfitCountBadge" class="bg-pink-100 text-pink-600 px-2.5 py-1 rounded-full font-bold">قطع مختارة: 4</span>
+            </div>
+
+        </section>
+
+        <!-- RIGHT: Wardrobe & Customization Studio (7 cols on lg) -->
+        <section class="lg:col-span-7 bg-white/90 backdrop-blur-xl rounded-3xl p-4 sm:p-5 shadow-chic border border-pink-100 flex flex-col h-full">
+            
+            <!-- Category Navigation Tabs (Horizontal Scrollable) -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-4 border-b border-pink-100 no-scrollbar">
+                <button onclick="switchCategory('skin')" id="tab-skin" class="cat-tab active bounce-btn whitespace-nowrap px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition bg-pink-500 text-white shadow-md">
+                    <i class="fa-solid fa-palette"></i> البشرة والمكياج
+                </button>
+                <button onclick="switchCategory('hair')" id="tab-hair" class="cat-tab bounce-btn whitespace-nowrap px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-600">
+                    <i class="fa-solid fa-scissors"></i> الشعر
+                </button>
+                <button onclick="switchCategory('tops')" id="tab-tops" class="cat-tab bounce-btn whitespace-nowrap px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-600">
+                    <i class="fa-solid fa-shirt"></i> بلوزات
+                </button>
+                <button onclick="switchCategory('bottoms')" id="tab-bottoms" class="cat-tab bounce-btn whitespace-nowrap px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-600">
+                    <i class="fa-solid fa-person-dots-from-line"></i> تنورات وبنطال
+                </button>
+                <button onclick="switchCategory('dresses')" id="tab-dresses" class="cat-tab bounce-btn whitespace-nowrap px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-600">
+                    <i class="fa-solid fa-vest-patches"></i> فساتين
+                </button>
+                <button onclick="switchCategory('shoes')" id="tab-shoes" class="cat-tab bounce-btn whitespace-nowrap px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-600">
+                    <i class="fa-solid fa-shoe-prints"></i> أحذية
+                </button>
+                <button onclick="switchCategory('accessories')" id="tab-accessories" class="cat-tab bounce-btn whitespace-nowrap px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-600">
+                    <i class="fa-solid fa-gem"></i> إكسسوارات
+                </button>
+                <button onclick="switchCategory('backgrounds')" id="tab-backgrounds" class="cat-tab bounce-btn whitespace-nowrap px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-600">
+                    <i class="fa-solid fa-image"></i> الخلفية
+                </button>
+            </div>
+
+            <!-- Category Description Banner -->
+            <div class="flex justify-between items-center mb-3">
+                <h2 id="categoryTitle" class="text-base font-bold text-slate-700 flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-pink-500 inline-block"></span> لون البشرة والمكياج
+                </h2>
+                <span id="categoryItemCount" class="text-xs text-slate-400 font-semibold">6 خيارات</span>
+            </div>
+
+            <!-- Items Grid Container -->
+            <div id="itemsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[440px] overflow-y-auto p-1">
+                <!-- Dynamic cards populated by JavaScript -->
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modal Notification / Message Box -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 z-50 flex items-center gap-3 border border-pink-500/30">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-pink-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">تم تطبيق التغييرات بنجاح!</span>
+    </div>
+
+    <!-- AUDIO SYNTHESIZER FOR SOUND EFFECTS -->
+    <script>
+        // Web Audio API Synthesizer (No external audio files needed)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function playSound(type) {
+            if (isMuted) return;
+            try {
+                initAudio();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'dress') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.12); // E5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'magic') {
+                    // Arpeggio sound for magic/randomize
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const subOsc = audioCtx.createOscillator();
+                        const subGain = audioCtx.createGain();
+                        subOsc.type = 'sine';
+                        subOsc.frequency.setValueAtTime(freq, now + idx * 0.06);
+                        subGain.gain.setValueAtTime(0.12, now + idx * 0.06);
+                        subGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.1);
+                        subOsc.connect(subGain);
+                        subGain.connect(audioCtx.destination);
+                        subOsc.start(now + idx * 0.06);
+                        subOsc.stop(now + idx * 0.06 + 0.1);
+                    });
+                } else if (type === 'camera') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.setValueAtTime(400, now + 0.05);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                }
+            } catch (e) {
+                console.log("Audio play error:", e);
+            }
+        }
+
+        function toggleSound() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('soundToggleBtn');
+            const icon = document.getElementById('soundIcon');
+            if (isMuted) {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-400';
+                btn.classList.add('opacity-60');
+                showToast('تم إيقاف الصوت', 'info');
+            } else {
+                icon.className = 'fa-solid fa-volume-high';
+                btn.classList.remove('opacity-60');
+                playSound('click');
+                showToast('تم تفعيل الصوت', 'success');
+            }
+        }
+    </script>
+
+    <!-- GAME DATA & DRAWING ENGINE -->
+    <script>
+        // State Management
+        let currentCategory = 'skin';
+        
+        let activeState = {
+            skin: 'skin_fair',
+            face: 'face_glam',
+            hair: 'hair_waves',
+            tops: 'top_casual',
+            bottoms: 'bottom_skirt',
+            dresses: null, // If set, disables tops and bottoms
+            shoes: 'shoes_heels',
+            accessories: 'acc_glasses',
+            backgrounds: 'bg_runway'
+        };
+
+        // Item Database with SVG renderers
+        const database = {
+            skin: [
+                { id: 'skin_fair', name: 'بشرة فاتحة', color: '#FCE6D6', shadowColor: '#EBBBA2', lipstick: '#FF4D6D' },
+                { id: 'skin_warm', name: 'بشرة دافئة', color: '#F3C4A5', shadowColor: '#DB9B74', lipstick: '#E63946' },
+                { id: 'skin_tan', name: 'بشرة برونزية', color: '#D49A6A', shadowColor: '#B07243', lipstick: '#C77DFF' },
+                { id: 'skin_deep', name: 'بشرة داكنة', color: '#8D5524', shadowColor: '#603813', lipstick: '#9D0208' },
+                { id: 'skin_rose', name: 'وردية مفعمة', color: '#FFDFD3', shadowColor: '#F5B097', lipstick: '#FF758F' }
+            ],
+            hair: [
+                { id: 'hair_waves', name: 'تموجات أشقر', color: '#F7D070', style: 'waves' },
+                { id: 'hair_bun', name: 'كعكة كلاسيكية', color: '#4A2E2B', style: 'bun' },
+                { id: 'hair_long_pink', name: 'شعر وردي طويل', color: '#FF69B4', style: 'long' },
+                { id: 'hair_bob_black', name: 'قصة بوب أسود', color: '#1A1A1A', style: 'bob' },
+                { id: 'hair_curly_red', name: 'كيرلي ناري', color: '#D00000', style: 'curly' },
+                { id: 'hair_braid_purple', name: 'ضفيرة بنفسجية', color: '#8A2BE2', style: 'braid' }
+            ],
+            tops: [
+                { id: 'top_casual', name: 'قميص وردي عصري', type: 'tshirt', color: '#FF758F' },
+                { id: 'top_crop', name: 'كروب توب ذهبي', type: 'crop', color: '#FFD700' },
+                { id: 'top_blouse', name: 'بلوزة بنفسجية', type: 'blouse', color: '#B5179E' },
+                { id: 'top_hoodie', name: 'هودي أزرق سماوي', type: 'hoodie', color: '#4CC9F0' },
+                { id: 'none', name: 'بدون بلوزة', type: 'none', color: '' }
+            ],
+            bottoms: [
+                { id: 'bottom_skirt', name: 'تنورة قصيرة', type: 'skirt', color: '#7209B7' },
+                { id: 'bottom_jeans', name: 'بنطال جينز', type: 'jeans', color: '#4361EE' },
+                { id: 'bottom_shorts', name: 'شورت أبيض', type: 'shorts', color: '#FFFFFF' },
+                { id: 'bottom_longskirt', name: 'تنورة أنيقة طويلة', type: 'longskirt', color: '#F72585' },
+                { id: 'none', name: 'بدون تنورة/بنطال', type: 'none', color: '' }
+            ],
+            dresses: [
+                { id: 'dress_gown', name: 'فستان سهرة فخم', color: '#FF007F', style: 'gown' },
+                { id: 'dress_summer', name: 'فستان صيفي مشجر', color: '#00F5D4', style: 'summer' },
+                { id: 'dress_cocktail', name: 'فستان مخملي أسود', color: '#2B2D42', style: 'cocktail' },
+                { id: 'dress_princess', name: 'فستان الأميرة الذهبي', color: '#FFB703', style: 'princess' },
+                { id: 'none', name: 'بدون فستان (استخدام قطع)', style: 'none' }
+            ],
+            shoes: [
+                { id: 'shoes_heels', name: 'حذاء كعب وردي', color: '#FF0054', style: 'heels' },
+                { id: 'shoes_sneakers', name: 'حذاء رياضي كاجوال', color: '#FFFFFF', style: 'sneakers' },
+                { id: 'shoes_boots', name: 'جزمة أنيقة', color: '#3A0CA3', style: 'boots' },
+                { id: 'shoes_sandals', name: 'صندل صيفي ذهبي', color: '#FFD700', style: 'sandals' }
+            ],
+            accessories: [
+                { id: 'acc_glasses', name: 'نظارات شمسية كول', type: 'glasses', color: '#111111' },
+                { id: 'acc_hat', name: 'قبعة قش صيفية', type: 'hat', color: '#F4A261' },
+                { id: 'acc_bag', name: 'حقيبة يد وردية', type: 'bag', color: '#FF4D6D' },
+                { id: 'acc_crown', name: 'تاج ملكي ذهبي', type: 'crown', color: '#FFD700' },
+                { id: 'acc_necklace', name: 'عقد لؤلؤ فاخر', type: 'necklace', color: '#E0AAFF' },
+                { id: 'none', name: 'بدون إكسسوارات', type: 'none', color: '' }
+            ],
+            backgrounds: [
+                { id: 'bg_runway', name: 'منصة العرض', class: 'bg-scene-runway', icon: 'fa-shoe-prints' },
+                { id: 'bg_beach', name: 'شاطئ البحر', class: 'bg-scene-beach', icon: 'fa-umbrella-beach' },
+                { id: 'bg_park', name: 'حديقة المدينة', class: 'bg-scene-park', icon: 'fa-tree' },
+                { id: 'bg_room', name: 'غرفة النوم الأنيقة', class: 'bg-scene-room', icon: 'fa-bed' },
+                { id: 'bg_party', name: 'حفلة صاخبة', class: 'bg-scene-party', icon: 'fa-champagne-glasses' }
+            ]
+        };
+
+        // Category Arabic names mapping
+        const categoryTitles = {
+            skin: 'لون البشرة والمكياج',
+            hair: 'تصفيفات الشعر',
+            tops: 'البلوزات والقمصان',
+            bottoms: 'التنانير والسراويل',
+            dresses: 'الفساتين الكاملة',
+            shoes: 'الأحذية الأنيقة',
+            accessories: 'الإكسسوارات والحقائب',
+            backgrounds: 'خلفية الديكور'
+        };
+
+        // Render functions for Doll SVGs
+        function renderDoll() {
+            const skinItem = database.skin.find(s => s.id === activeState.skin) || database.skin[0];
+
+            // 1. SKIN & BODY MODEL
+            const skinSvg = `
+                <!-- Head -->
+                <ellipse cx="200" cy="180" rx="45" ry="55" fill="${skinItem.color}" />
+                <path d="M155 185 C155 225 245 225 245 185 Z" fill="${skinItem.color}" />
+                
+                <!-- Neck -->
+                <rect x="188" y="225" width="24" height="35" rx="5" fill="${skinItem.shadowColor}" opacity="0.4" />
+                <rect x="188" y="225" width="24" height="30" rx="5" fill="${skinItem.color}" />
+
+                <!-- Torso Base -->
+                <path d="M155 255 L245 255 L230 380 L170 380 Z" fill="${skinItem.color}" />
+
+                <!-- Arms -->
+                <path d="M155 255 Q130 330 135 410 Q142 410 148 390 L163 275 Z" fill="${skinItem.color}" />
+                <path d="M245 255 Q270 330 265 410 Q258 410 252 390 L237 275 Z" fill="${skinItem.color}" />
+
+                <!-- Legs -->
+                <path d="M172 375 L165 570 L192 570 L197 375 Z" fill="${skinItem.color}" />
+                <path d="M228 375 L235 570 L208 570 L203 375 Z" fill="${skinItem.color}" />
+
+                <!-- Base Underwear -->
+                <path d="M170 350 L230 350 L225 385 L175 385 Z" fill="#ffffff" opacity="0.9" />
+                <path d="M165 265 L235 265 L225 295 L175 295 Z" fill="#ffffff" opacity="0.9" />
+            `;
+            document.getElementById('layer-skin').innerHTML = skinSvg;
+
+            // 2. FACE & MAKEUP
+            const faceSvg = `
+                <!-- Eyes -->
+                <ellipse cx="180" cy="175" rx="8" ry="10" fill="#FFFFFF" />
+                <ellipse cx="220" cy="175" rx="8" ry="10" fill="#FFFFFF" />
+                <circle cx="180" cy="175" r="5" fill="#495057" />
+                <circle cx="220" cy="175" r="5" fill="#495057" />
+                <circle cx="182" cy="173" r="2" fill="#FFFFFF" />
+                <circle cx="222" cy="173" r="2" fill="#FFFFFF" />
+                
+                <!-- Eyelashes & Brows -->
+                <path d="M170 168 Q180 162 190 168" stroke="#111" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M210 168 Q220 162 230 168" stroke="#111" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M172 160 Q180 156 188 160" stroke="#555" stroke-width="2" fill="none"/>
+                <path d="M212 160 Q220 156 228 160" stroke="#555" stroke-width="2" fill="none"/>
+
+                <!-- Blush -->
+                <circle cx="168" cy="188" r="8" fill="#FF8FA3" opacity="0.4" />
+                <circle cx="232" cy="188" r="8" fill="#FF8FA3" opacity="0.4" />
+
+                <!-- Nose -->
+                <path d="M198 180 Q200 188 202 180" stroke="${skinItem.shadowColor}" stroke-width="2" fill="none" />
+
+                <!-- Cute Lips -->
+                <path d="M188 202 Q200 212 212 202 Q200 206 188 202 Z" fill="${skinItem.lipstick}" />
+            `;
+            document.getElementById('layer-face').innerHTML = faceSvg;
+
+            // 3. DRESSES OR TOPS+BOTTOMS TOGGLE LOGIC
+            const dressesLayer = document.getElementById('layer-dresses');
+            const topsLayer = document.getElementById('layer-tops');
+            const bottomsLayer = document.getElementById('layer-bottoms');
+
+            if (activeState.dresses && activeState.dresses !== 'none') {
+                topsLayer.innerHTML = '';
+                bottomsLayer.innerHTML = '';
+                
+                const dress = database.dresses.find(d => d.id === activeState.dresses);
+                let dressSvg = '';
+                if (dress) {
+                    if (dress.style === 'gown') {
+                        dressSvg = `
+                            <path d="M160 255 L240 255 L260 340 L300 580 L100 580 L140 340 Z" fill="${dress.color}" />
+                            <path d="M180 255 L200 310 L220 255" fill="#FFF" opacity="0.3" />
+                            <circle cx="200" cy="330" r="12" fill="#FFD700" />
+                        `;
+                    } else if (dress.style === 'summer') {
+                        dressSvg = `
+                            <path d="M165 255 L235 255 L250 340 L270 490 L130 490 Z" fill="${dress.color}" />
+                            <circle cx="180" cy="380" r="10" fill="#FFF" opacity="0.6" />
+                            <circle cx="220" cy="420" r="12" fill="#FFF" opacity="0.6" />
+                            <circle cx="160" cy="440" r="8" fill="#FFF" opacity="0.6" />
+                        `;
+                    } else if (dress.style === 'cocktail') {
+                        dressSvg = `
+                            <path d="M160 250 L240 250 L235 340 L245 440 L155 440 L165 340 Z" fill="${dress.color}" />
+                            <path d="M160 250 L200 280 L240 250 Z" fill="#FF4081" />
+                        `;
+                    } else if (dress.style === 'princess') {
+                        dressSvg = `
+                            <path d="M155 250 L245 250 L285 580 L115 580 Z" fill="${dress.color}" />
+                            <path d="M155 250 Q200 270 245 250 L235 340 L165 340 Z" fill="#FFFFFF" opacity="0.4" />
+                        `;
+                    }
+                }
+                dressesLayer.innerHTML = dressSvg;
+            } else {
+                dressesLayer.innerHTML = '';
+
+                // Render TOPS
+                const top = database.tops.find(t => t.id === activeState.tops);
+                let topSvg = '';
+                if (top && top.type !== 'none') {
+                    if (top.type === 'tshirt') {
+                        topSvg = `
+                            <path d="M150 255 L250 255 L240 295 L225 345 L175 345 L160 295 Z" fill="${top.color}" />
+                            <path d="M150 255 L125 295 L150 310 L165 275 Z" fill="${top.color}" />
+                            <path d="M250 255 L275 295 L250 310 L235 275 Z" fill="${top.color}" />
+                            <!-- Heart Graphic -->
+                            <path d="M200 295 C195 285 185 288 188 298 C192 305 200 310 200 310 C200 310 208 305 212 298 C215 288 205 285 200 295 Z" fill="#FFFFFF" />
+                        `;
+                    } else if (top.type === 'crop') {
+                        topSvg = `
+                            <path d="M160 255 L240 255 L230 310 L170 310 Z" fill="${top.color}" />
+                            <path d="M185 255 L200 275 L215 255 Z" fill="#111" opacity="0.2" />
+                        `;
+                    } else if (top.type === 'blouse') {
+                        topSvg = `
+                            <path d="M155 250 L245 250 L235 350 L165 350 Z" fill="${top.color}" />
+                            <path d="M155 250 L135 330 L155 335 L165 275 Z" fill="${top.color}" opacity="0.9"/>
+                            <path d="M245 250 L265 330 L245 335 L235 275 Z" fill="${top.color}" opacity="0.9"/>
+                        `;
+                    } else if (top.type === 'hoodie') {
+                        topSvg = `
+                            <path d="M145 245 L255 245 L245 355 L155 355 Z" fill="${top.color}" />
+                            <path d="M145 245 L120 340 L145 345 Z" fill="${top.color}" />
+                            <path d="M255 245 L280 340 L255 345 Z" fill="${top.color}" />
+                            <rect x="175" y="310" width="50" height="35" rx="5" fill="#FFFFFF" opacity="0.3" />
+                        `;
+                    }
+                }
+                topsLayer.innerHTML = topSvg;
+
+                // Render BOTTOMS
+                const bottom = database.bottoms.find(b => b.id === activeState.bottoms);
+                let bottomSvg = '';
+                if (bottom && bottom.type !== 'none') {
+                    if (bottom.type === 'skirt') {
+                        bottomSvg = `
+                            <path d="M168 340 L232 340 L255 440 L145 440 Z" fill="${bottom.color}" />
+                        `;
+                    } else if (bottom.type === 'jeans') {
+                        bottomSvg = `
+                            <path d="M168 340 L232 340 L238 565 L203 565 L200 420 L197 565 L162 565 Z" fill="${bottom.color}" />
+                            <!-- Stitch Details -->
+                            <path d="M168 340 L232 340" stroke="#FFD700" stroke-width="2" stroke-dasharray="4,4" />
+                        `;
+                    } else if (bottom.type === 'shorts') {
+                        bottomSvg = `
+                            <path d="M168 340 L232 340 L236 400 L203 400 L200 375 L197 400 L164 400 Z" fill="${bottom.color}" />
+                        `;
+                    } else if (bottom.type === 'longskirt') {
+                        bottomSvg = `
+                            <path d="M168 340 L232 340 L270 575 L130 575 Z" fill="${bottom.color}" />
+                        `;
+                    }
+                }
+                bottomsLayer.innerHTML = bottomSvg;
+            }
+
+            // 4. SHOES
+            const shoe = database.shoes.find(s => s.id === activeState.shoes);
+            let shoeSvg = '';
+            if (shoe) {
+                if (shoe.style === 'heels') {
+                    shoeSvg = `
+                        <path d="M162 565 L193 565 L193 580 L180 585 L162 575 Z" fill="${shoe.color}" />
+                        <path d="M207 565 L238 565 L238 575 L220 585 L207 580 Z" fill="${shoe.color}" />
+                        <rect x="163" y="575" width="4" height="20" fill="#111" />
+                        <rect x="233" y="575" width="4" height="20" fill="#111" />
+                    `;
+                } else if (shoe.style === 'sneakers') {
+                    shoeSvg = `
+                        <rect x="158" y="560" width="36" height="25" rx="8" fill="${shoe.color}" />
+                        <rect x="206" y="560" width="36" height="25" rx="8" fill="${shoe.color}" />
+                        <rect x="158" y="577" width="36" height="8" rx="2" fill="#333" />
+                        <rect x="206" y="577" width="36" height="8" rx="2" fill="#333" />
+                    `;
+                } else if (shoe.style === 'boots') {
+                    shoeSvg = `
+                        <path d="M162 490 L194 490 L194 585 L162 585 Z" fill="${shoe.color}" />
+                        <path d="M206 490 L238 490 L238 585 L206 585 Z" fill="${shoe.color}" />
+                    `;
+                } else if (shoe.style === 'sandals') {
+                    shoeSvg = `
+                        <rect x="160" y="570" width="33" height="6" fill="${shoe.color}" />
+                        <rect x="207" y="570" width="33" height="6" fill="${shoe.color}" />
+                        <path d="M165 565 L188 565" stroke="${shoe.color}" stroke-width="4" />
+                        <path d="M212 565 L235 565" stroke="${shoe.color}" stroke-width="4" />
+                    `;
+                }
+            }
+            document.getElementById('layer-shoes').innerHTML = shoeSvg;
+
+            // 5. HAIRSTYLE
+            const hair = database.hair.find(h => h.id === activeState.hair);
+            let hairSvg = '';
+            if (hair) {
+                if (hair.style === 'waves') {
+                    hairSvg = `
+                        <!-- Back Hair -->
+                        <path d="M140 160 Q120 280 145 380 Q160 380 155 240 Z" fill="${hair.color}" />
+                        <path d="M260 160 Q280 280 255 380 Q240 380 245 240 Z" fill="${hair.color}" />
+                        <!-- Front Bangs/Top -->
+                        <path d="M150 165 C150 100 250 100 250 165 C230 140 170 140 150 165 Z" fill="${hair.color}" />
+                        <path d="M150 165 Q200 185 250 165 Q220 140 150 165 Z" fill="${hair.color}" />
+                    `;
+                } else if (hair.style === 'bun') {
+                    hairSvg = `
+                        <!-- Top Bun -->
+                        <circle cx="200" cy="105" r="32" fill="${hair.color}" />
+                        <path d="M150 165 C155 115 245 115 250 165 Z" fill="${hair.color}" />
+                    `;
+                } else if (hair.style === 'long') {
+                    hairSvg = `
+                        <path d="M140 150 C110 260 120 420 145 460 L165 460 C140 360 150 240 155 180 Z" fill="${hair.color}" />
+                        <path d="M260 150 C290 260 280 420 255 460 L235 460 C260 360 250 240 245 180 Z" fill="${hair.color}" />
+                        <path d="M150 165 C150 110 250 110 250 165 Z" fill="${hair.color}" />
+                    `;
+                } else if (hair.style === 'bob') {
+                    hairSvg = `
+                        <path d="M145 150 C140 210 145 245 160 250 L150 170 Z" fill="${hair.color}" />
+                        <path d="M255 150 C260 210 255 245 240 250 L250 170 Z" fill="${hair.color}" />
+                        <path d="M148 165 C150 110 250 110 252 165 Z" fill="${hair.color}" />
+                    `;
+                } else if (hair.style === 'curly') {
+                    hairSvg = `
+                        <circle cx="160" cy="140" r="25" fill="${hair.color}" />
+                        <circle cx="240" cy="140" r="25" fill="${hair.color}" />
+                        <circle cx="200" cy="120" r="30" fill="${hair.color}" />
+                        <circle cx="145" cy="180" r="22" fill="${hair.color}" />
+                        <circle cx="255" cy="180" r="22" fill="${hair.color}" />
+                    `;
+                } else if (hair.style === 'braid') {
+                    hairSvg = `
+                        <path d="M150 165 C150 110 250 110 250 165 Z" fill="${hair.color}" />
+                        <path d="M245 180 Q270 240 260 330 Q250 340 245 320 Q250 240 235 190 Z" fill="${hair.color}" />
+                    `;
+                }
+            }
+            document.getElementById('layer-hair').innerHTML = hairSvg;
+
+            // 6. ACCESSORIES
+            const acc = database.accessories.find(a => a.id === activeState.accessories);
+            let accSvg = '';
+            if (acc && acc.type !== 'none') {
+                if (acc.type === 'glasses') {
+                    accSvg = `
+                        <rect x="165" y="168" width="30" height="16" rx="4" fill="none" stroke="${acc.color}" stroke-width="4" />
+                        <rect x="205" y="168" width="30" height="16" rx="4" fill="none" stroke="${acc.color}" stroke-width="4" />
+                        <line x1="195" y1="174" x2="205" y2="174" stroke="${acc.color}" stroke-width="3" />
+                    `;
+                } else if (acc.type === 'hat') {
+                    accSvg = `
+                        <ellipse cx="200" cy="130" rx="65" ry="12" fill="${acc.color}" />
+                        <path d="M160 130 C160 85 240 85 240 130 Z" fill="${acc.color}" />
+                        <rect x="160" y="122" width="80" height="8" fill="#FF1493" />
+                    `;
+                } else if (acc.type === 'bag') {
+                    accSvg = `
+                        <path d="M245 340 L275 340 L280 380 L240 380 Z" fill="${acc.color}" />
+                        <path d="M255 340 C255 320 265 320 265 340" stroke="#111" stroke-width="2" fill="none" />
+                    `;
+                } else if (acc.type === 'crown') {
+                    accSvg = `
+                        <path d="M170 125 L175 95 L187 115 L200 90 L213 115 L225 95 L230 125 Z" fill="${acc.color}" stroke="#DAA520" stroke-width="2" />
+                        <circle cx="200" cy="100" r="3" fill="#FF0000" />
+                    `;
+                } else if (acc.type === 'necklace') {
+                    accSvg = `
+                        <path d="M180 230 Q200 255 220 230" stroke="${acc.color}" stroke-width="4" stroke-dasharray="6,6" fill="none" />
+                    `;
+                }
+            }
+            document.getElementById('layer-accessories').innerHTML = accSvg;
+
+            // Update badge info
+            updateSelectedBadge();
+        }
+
+        // Switch Category View
+        function switchCategory(catKey) {
+            playSound('click');
+            currentCategory = catKey;
+
+            // Update tab UI
+            document.querySelectorAll('.cat-tab').forEach(tab => {
+                tab.classList.remove('bg-pink-500', 'text-white', 'shadow-md');
+                tab.classList.add('bg-slate-100', 'text-slate-600');
+            });
+
+            const activeTab = document.getElementById(`tab-${catKey}`);
+            if (activeTab) {
+                activeTab.classList.remove('bg-slate-100', 'text-slate-600');
+                activeTab.classList.add('bg-pink-500', 'text-white', 'shadow-md');
+            }
+
+            // Update Titles
+            document.getElementById('categoryTitle').innerHTML = `
+                <span class="w-3 h-3 rounded-full bg-pink-500 inline-block"></span> ${categoryTitles[catKey]}
+            `;
+
+            renderItemsGrid();
+        }
+
+        // Populate Wardrobe Grid Cards
+        function renderItemsGrid() {
+            const grid = document.getElementById('itemsGrid');
+            grid.innerHTML = '';
+            const items = database[currentCategory] || [];
+
+            document.getElementById('categoryItemCount').textContent = `${items.length} خيارات`;
+
+            items.forEach(item => {
+                const isSelected = activeState[currentCategory] === item.id;
+                const card = document.createElement('div');
+                card.className = `item-card cursor-pointer p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 bg-white ${isSelected ? 'active border-pink-500' : 'border-slate-100 hover:border-pink-300'}`;
+                
+                // Content preview depending on category
+                let previewHtml = '';
+                if (currentCategory === 'skin') {
+                    previewHtml = `<div class="w-10 h-10 rounded-full shadow-inner border-2 border-white" style="background-color: ${item.color}"></div>`;
+                } else if (currentCategory === 'backgrounds') {
+                    previewHtml = `<div class="w-12 h-10 rounded-xl ${item.class} flex items-center justify-center text-white text-lg shadow-sm"><i class="fa-solid ${item.icon}"></i></div>`;
+                } else if (item.color) {
+                    previewHtml = `<div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" style="background-color: ${item.color}22; border: 2px solid ${item.color}">
+                        <div class="w-5 h-5 rounded-full" style="background-color: ${item.color}"></div>
+                    </div>`;
+                } else {
+                    previewHtml = `<div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs"><i class="fa-solid fa-ban"></i></div>`;
+                }
+
+                card.innerHTML = `
+                    ${previewHtml}
+                    <span class="text-xs font-bold text-slate-700 text-center line-clamp-1">${item.name}</span>
+                `;
+
+                card.onclick = () => selectItem(currentCategory, item.id);
+                grid.appendChild(card);
+            });
+        }
+
+        // Select item logic
+        function selectItem(category, itemId) {
+            playSound('dress');
+            
+            // Special mutual exclusivity rules
+            if (category === 'dresses' && itemId !== 'none') {
+                // If dress selected, clear tops and bottoms
+                activeState.tops = 'none';
+                activeState.bottoms = 'none';
+                activeState.dresses = itemId;
+            } else if ((category === 'tops' || category === 'bottoms') && itemId !== 'none') {
+                // If top or bottom selected, clear dress
+                activeState.dresses = 'none';
+                activeState[category] = itemId;
+            } else if (category === 'backgrounds') {
+                activeState.backgrounds = itemId;
+                applyBackground(itemId);
+            } else {
+                activeState[category] = itemId;
+            }
+
+            renderDoll();
+            renderItemsGrid();
+        }
+
+        // Apply Stage Scenery Background
+        function applyBackground(bgId) {
+            const bgItem = database.backgrounds.find(b => b.id === bgId) || database.backgrounds[0];
+            const stage = document.getElementById('stageContainer');
+            
+            // Reset background classes
+            stage.className = `relative w-full rounded-3xl overflow-hidden shadow-chic border-4 border-white transition-all duration-500 doll-container flex justify-center items-center ${bgItem.class}`;
+            
+            // Update Label
+            document.getElementById('sceneNameLabel').textContent = bgItem.name;
+        }
+
+        // Count selected items badge
+        function updateSelectedBadge() {
+            let count = 0;
+            Object.keys(activeState).forEach(key => {
+                if (activeState[key] && activeState[key] !== 'none') {
+                    count++;
+                }
+            });
+            document.getElementById('outfitCountBadge').textContent = `قطع مختارة: ${count}`;
+        }
+
+        // Action: Randomize Outfit
+        function randomizeOutfit() {
+            playSound('magic');
+            
+            // Pick random items for each category
+            const randomSkin = database.skin[Math.floor(Math.random() * database.skin.length)].id;
+            const randomHair = database.hair[Math.floor(Math.random() * database.hair.length)].id;
+            const randomShoes = database.shoes[Math.floor(Math.random() * database.shoes.length)].id;
+            const randomAcc = database.accessories[Math.floor(Math.random() * database.accessories.length)].id;
+            const randomBg = database.backgrounds[Math.floor(Math.random() * database.backgrounds.length)].id;
+
+            activeState.skin = randomSkin;
+            activeState.hair = randomHair;
+            activeState.shoes = randomShoes;
+            activeState.accessories = randomAcc;
+            activeState.backgrounds = randomBg;
+
+            // 50% chance of dress vs tops+bottoms
+            if (Math.random() > 0.5) {
+                const nonNoneDresses = database.dresses.filter(d => d.id !== 'none');
+                activeState.dresses = nonNoneDresses[Math.floor(Math.random() * nonNoneDresses.length)].id;
+                activeState.tops = 'none';
+                activeState.bottoms = 'none';
+            } else {
+                activeState.dresses = 'none';
+                const nonNoneTops = database.tops.filter(t => t.id !== 'none');
+                const nonNoneBottoms = database.bottoms.filter(b => b.id !== 'none');
+                activeState.tops = nonNoneTops[Math.floor(Math.random() * nonNoneTops.length)].id;
+                activeState.bottoms = nonNoneBottoms[Math.floor(Math.random() * nonNoneBottoms.length)].id;
+            }
+
+            applyBackground(activeState.backgrounds);
+            renderDoll();
+            renderItemsGrid();
+
+            showToast('✨ تم ابتكار مظهر عشوائي رائع!', 'magic');
+        }
+
+        // Action: Reset Outfit
+        function resetOutfit() {
+            playSound('click');
+            activeState = {
+                skin: 'skin_fair',
+                face: 'face_glam',
+                hair: 'hair_waves',
+                tops: 'top_casual',
+                bottoms: 'bottom_skirt',
+                dresses: 'none',
+                shoes: 'shoes_heels',
+                accessories: 'acc_glasses',
+                backgrounds: 'bg_runway'
+            };
+
+            applyBackground('bg_runway');
+            renderDoll();
+            renderItemsGrid();
+            showToast('تمت إعادة الضبط للمظهر الافتراضي', 'info');
+        }
+
+        // Action: Take Snapshot & Download Image
+        function takeSnapshot() {
+            playSound('camera');
+            const stage = document.getElementById('stageContainer');
+
+            showToast('جاري التقاط الصورة وتجهيز التحميل...', 'info');
+
+            html2canvas(stage, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: null
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `fashion-style-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('👑 تم حفظ صورة التنسيق بنجاح!', 'success');
+            }).catch(err => {
+                console.error('Snapshot error:', err);
+                showToast('حدث خطأ أثناء حفظ الصورة', 'error');
+            });
+        }
+
+        // Notification Toast UI Helper
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = msg;
+
+            if (type === 'magic') {
+                toastIcon.className = 'fa-solid fa-wand-magic-sparkles text-purple-400 text-lg';
+            } else if (type === 'info') {
+                toastIcon.className = 'fa-solid fa-circle-info text-blue-400 text-lg';
+            } else if (type === 'error') {
+                toastIcon.className = 'fa-solid fa-triangle-exclamation text-red-400 text-lg';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-check text-pink-400 text-lg';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2600);
+        }
+
+        // INITIALIZATION ON WINDOW LOAD
+        window.onload = function() {
+            renderDoll();
+            switchCategory('skin');
+            applyBackground('bg_runway');
+        };
+    </script>
+</body>
+</html>
